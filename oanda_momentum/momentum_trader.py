@@ -1,35 +1,8 @@
 #!/usr/bin/env python
 
 import oandapy as opy
-import configparser
 import pandas as pd
 import numpy as np
-
-config = configparser.ConfigParser()
-config.read('oanda.cfg')
-
-client = opy.API(environment='practice', access_token=config['oanda']['access_token'])
-
-data = client.get_history(instrument='EUR_USD',
-                         start='2016-12-08',
-                         end='2016-12-10',
-                         granularity='M1')
-
-df = pd.DataFrame(data['candles']).set_index('time')
-
-df.index = pd.DatetimeIndex(df.index)
-
-df.info()
-
-df['returns'] = np.log(df['closeAsk'] / df['closeAsk'].shift(1))  
-
-cols = []  
-
-for momentum in [15, 30, 60, 120]:
-    col = 'position_%s' % momentum
-    df[col] = np.sign(df['returns'].rolling(momentum).mean())
-    cols.append(col)
-
 
 class MomentumTrader(opy.Streamer):
 
